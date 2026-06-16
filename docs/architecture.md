@@ -1,47 +1,40 @@
 # Arquitectura — Qué significa "hacer un buen trabajo"
 
-> Este documento define el estándar de calidad. Los agentes revisores
-> evalúan código contra este archivo. Si no está aquí, no es un requisito.
+> Este documento define el estándar de calidad para **este proyecto**.
+> Los agentes revisores evalúan código contra este archivo.
+> Si no está aquí, no es un requisito.
+>
+> **PLANTILLA:** reemplaza el contenido de las secciones con la arquitectura
+> real del proyecto. Elimina este aviso cuando esté completo.
 
 ## Principios
 
-1. **Capas claras.** El proyecto tiene tres capas y solo tres:
-   - `storage.py` — persistencia (JSON en disco).
-   - `notes.py` — modelo de dominio (`Note`).
-   - `cli.py` — interfaz de usuario (argparse).
-   No introducir capas adicionales (servicios, repositorios, ORMs) hasta que
-   haya una razón concreta documentada en `feature_list.json`.
+_Describe aquí los principios de diseño no negociables de este proyecto._
 
-2. **Sin dependencias externas.** Solo stdlib de Python. Si una feature
-   requiere una dependencia, primero se discute (estado `blocked`).
+_Ejemplo: capas permitidas, política de dependencias externas, invariantes
+de datos, estrategia de manejo de errores._
 
-3. **Errores explícitos.** Las funciones que pueden fallar (id no existe,
-   archivo corrupto) lanzan excepciones nombradas, no devuelven `None`.
+1. ...
+2. ...
 
-4. **Inmutabilidad por defecto.** `Note` es un `@dataclass(frozen=True)`.
-   Modificar = crear una nueva instancia.
+## Capas del sistema
 
-5. **Atomicidad en disco.** Toda escritura a `notes.json` se hace primero
-   en un archivo temporal y luego `os.replace()`. Nunca dejar el archivo
-   a medio escribir.
+_Describe los módulos principales y su responsabilidad._
+
+| Módulo | Responsabilidad |
+|--------|----------------|
+| ...    | ...            |
 
 ## Flujo de datos
 
+_Diagrama ASCII o descripción del flujo principal._
+
 ```
-usuario  ─→  cli.py (argparse)
-              │
-              ├─ construye Note con notes.Note.new(...)
-              │
-              └─→  storage.load() / storage.save()
-                       │
-                       └─→  .notes.json (en CWD)
+entrada  →  capa A  →  capa B  →  salida
 ```
 
 ## Qué NO hacer
 
-- No usar `print()` para errores. Usa `sys.stderr` y exit code != 0.
-- No mezclar IO con lógica de dominio dentro de `notes.py`.
-- No leer/escribir el archivo en cada operación dentro de un bucle.
-  Carga al inicio, modifica en memoria, guarda al final.
-- No añadir un sistema de configuración. La ruta del archivo se pasa
-  explícitamente o usa la constante por defecto.
+_Lista explícita de anti-patrones prohibidos en este proyecto._
+
+- ...

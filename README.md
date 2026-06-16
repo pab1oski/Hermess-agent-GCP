@@ -1,7 +1,7 @@
-# ejemplo-harness — Notes CLI
+# [project-name]
 
-Proyecto de ejemplo que demuestra los principios de **Harness Engineering**
-aplicados a un CLI minimalista de notas en Python.
+Template que demuestra los principios de **Harness Engineering** aplicados
+a un proyecto Python. Incluye una app de notas mínima como ejemplo funcional.
 
 > El código de la aplicación es deliberadamente simple. Lo importante de
 > este repo no es **qué** hace, sino **cómo** está estructurado para que un
