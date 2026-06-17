@@ -1,0 +1,19 @@
+model_list:
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: vertex_ai/gemini-2.5-pro
+      vertex_project: "${GOOGLE_CLOUD_PROJECT}"
+      vertex_location: europe-west1
+
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: vertex_ai/gemini-2.5-flash
+      vertex_project: "${GOOGLE_CLOUD_PROJECT}"
+      vertex_location: europe-west1
+
+general_settings:
+  master_key: "${LITELLM_MASTER_KEY}"
+
+server:
+  port: 4000
+  host: 127.0.0.1

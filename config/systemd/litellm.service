@@ -1,0 +1,16 @@
+[Unit]
+Description=LiteLLM Proxy Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=/home/hermess/.hermes/.env
+ExecStart=/usr/local/bin/litellm --config /etc/litellm/config.yaml --port 4000
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,109 +1,199 @@
-# [project-name]
+# Hermes Agent on GCP
 
-Template que demuestra los principios de **Harness Engineering** aplicados
-a un proyecto Python. Incluye una app de notas mínima como ejemplo funcional.
+Deploy an autonomous AI Software Engineer on Google Cloud Platform using [Hermes Agent](https://hermes-agent.nousresearch.com/) (Nous Research). The agent listens for GitHub Issues via webhook, clones your repos, implements changes, runs tests, and opens Pull Requests — all without human intervention.
 
-> El código de la aplicación es deliberadamente simple. Lo importante de
-> este repo no es **qué** hace, sino **cómo** está estructurado para que un
-> agente de IA pueda trabajar sobre él de forma autónoma y verificable.
+## Architecture
 
-## Cómo está organizado el arnés
-
-| Pilar | Manifestación en este repo |
-|-------|----------------------------|
-| **1. El repositorio ES el sistema** | `AGENTS.md`, `init.sh`, `feature_list.json`, `progress/`, `docs/` |
-| **2. Orquestación multi-agente**    | `.claude/agents/leader.md`, `implementer.md`, `reviewer.md` |
-| **3. Supervisión y mejora**         | `CHECKPOINTS.md`, hooks en `.claude/settings.json`, `tests/` |
-
-## Para empezar
-
-```bash
-./init.sh
+```
+GitHub Issue
+     ↓ webhook (port 8644)
+  Hermes Agent (VM)
+     ↓ OpenAI-compatible API
+  LiteLLM proxy (localhost:4000)
+     ↓ Vertex AI SDK
+  Gemini 2.5 Pro / Flash
+     ↓ git push + gh pr create
+  GitHub Pull Request + Issue comment
 ```
 
-Si todo está verde, abre `AGENTS.md` y sigue desde ahí.
+**Infrastructure:** GCP e2-standard-2 VM · Debian 12 · us-central1 · Secret Manager for credentials
 
-## Para usar la app (humanos)
+## Quick Start
+
+### Prerequisites
+
+- [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed and authenticated (`gcloud auth login`)
+- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
+- A GCP project with billing enabled
+- A GitHub Fine-Grained PAT with `contents:write` and `pull-requests:write` scopes
+- A webhook secret — any random string, e.g. `openssl rand -hex 32`
+- A LiteLLM master key — any random string, e.g. `openssl rand -hex 32`
+
+### 1. Bootstrap Terraform state
 
 ```bash
-python3 -m src.cli add "comprar pan" --body "y leche"
-python3 -m src.cli list
+# Creates GCS bucket for Terraform state + enables required GCP APIs
+./scripts/bootstrap-tfstate.sh <your-gcp-project-id>
 ```
 
-## Probarlo tú mismo con Claude Code
+After this completes, edit `terraform/backend.tf` and replace the placeholder on line 14:
 
-Si te descargas el repo y abres Claude Code en la raíz, ya estás dentro del
-arnés: `CLAUDE.md` fuerza al modelo a actuar como `leader` (orquesta, no
-edita código).
+```
+bucket = "REPLACE_WITH_PROJECT_ID-tfstate"
+```
 
-Receta rápida:
+with your actual bucket name (e.g. `my-project-123-tfstate`).
 
-1. `./init.sh` — debe terminar verde.
-2. Abre `feature_list.json` y deja al menos una feature con `status: "pending"`.
-   Si todas están en `done`, añade una nueva al final del array o cambia el
-   estado de una existente para reabrirla.
-3. Lanza Claude Code en la raíz del repo: `claude`.
-4. Pídele literalmente: **«implementa la siguiente feature pendiente»**.
+### 2. Configure variables
 
-Lo que verás en chat:
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+```
 
-- El **leader** anuncia el plan, lanza un `implementer` y luego un `reviewer`.
-- Por chat **no pasa código** — solo referencias del tipo
-  `done -> progress/impl_<feature>.md`. Esa es la regla anti-teléfono-descompuesto.
+Edit `terraform.tfvars`. Required variables:
 
-Dónde queda la traza de cada subagente (esto es la "visualización" persistente):
+| Variable | Description |
+|----------|-------------|
+| `project_id` | Your GCP project ID |
+| `repo_url` | URL of **this** repo — the VM clones it to get `config/`, `scripts/`, and `skills/` (e.g. `https://github.com/your-org/Hermess-agent-GCP`) |
 
-| Archivo                          | Quién lo escribe | Qué contiene                                        |
-|----------------------------------|------------------|-----------------------------------------------------|
-| `progress/current.md`            | leader           | Plan vivo de la sesión                              |
-| `progress/impl_<feature>.md`     | implementer      | Archivos tocados + output de los tests              |
-| `progress/review_<feature>.md`   | reviewer         | Checklist contra `docs/` y `CHECKPOINTS.md`         |
-| `feature_list.json`              | implementer      | `pending` → `in_progress` → `done`                  |
-| `progress/history.md`            | leader           | Resumen append-only al cerrar la sesión             |
+Optional variables (have defaults):
 
-Abre `progress/` en tu editor mientras Claude trabaja: cada informe aparece
-en cuanto el subagente termina. Así puedes auditar paso a paso quién decidió
-qué — el contenido no circula por chat, vive en disco y queda versionado.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `agent_name` | `hermess-agent` | Name prefix for all GCP resources |
+| `region` | `us-central1` | GCP region |
+| `zone` | `us-central1-a` | GCP zone |
+| `machine_type` | `e2-standard-2` | VM machine type |
+| `disk_size_gb` | `50` | Boot disk size |
+| `ssh_allowed_cidr` | `0.0.0.0/0` | CIDR for SSH firewall — restrict to your IP for security |
 
-## Estructura
+### 3. Deploy infrastructure
+
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+This creates: VM, Service Account, static IP, firewall rules (SSH + webhook port 8644), and 3 empty Secret Manager secrets.
+
+### 4. Populate secrets
+
+Secret names use the `agent_name` prefix (default `hermess-agent`). Replace `<project-id>` and values accordingly:
+
+```bash
+echo -n "your-github-pat" | \
+  gcloud secrets versions add hermess-agent-github-pat --data-file=- --project=<project-id>
+
+echo -n "your-webhook-secret" | \
+  gcloud secrets versions add hermess-agent-github-webhook-secret --data-file=- --project=<project-id>
+
+echo -n "your-litellm-master-key" | \
+  gcloud secrets versions add hermess-agent-litellm-master-key --data-file=- --project=<project-id>
+```
+
+> **Note:** The secrets must be populated BEFORE rebooting the VM or re-running startup.sh, because the startup script reads them at boot time.
+
+### 5. Wait for VM provisioning (~3-5 min)
+
+The VM automatically runs `scripts/startup.sh` → `scripts/provision.sh` on first boot. This installs Docker, GitHub CLI, Hermes Agent, LiteLLM, and copies all config and skills.
+
+To check provisioning status:
+
+```bash
+gcloud compute ssh hermess-agent-vm --zone=us-central1-a -- \
+  "sudo journalctl -u google-startup-scripts -n 50 --no-pager"
+```
+
+### 6. Configure GitHub webhook
+
+On your target GitHub repo: **Settings → Webhooks → Add webhook**
+
+- Payload URL: `http://<vm-ip>:8644/webhook`
+  - Get the IP: `cd terraform && terraform output -raw vm_ip`
+- Content type: `application/json`
+- Secret: (same value you set for `hermess-agent-github-webhook-secret`)
+- Events: select **Issues**
+
+Then SSH into the VM and activate the webhook gateway:
+
+```bash
+gcloud compute ssh hermess-agent-vm --zone=us-central1-a
+# Once inside the VM:
+bash /opt/hermes-deploy/scripts/setup-webhook.sh
+exit
+```
+
+### 7. Verify everything works
+
+```bash
+# From your local machine (requires terraform state initialized)
+./scripts/test-e2e.sh
+```
+
+Expected output:
+```
+[PASS] SSH conecta
+[PASS] hermes instalado
+[PASS] LiteLLM activo
+[PASS] modelo gemini-2.5-pro
+[PASS] skill git-workflow
+[PASS] gateway activo
+[PASS] gh autenticado
+
+Resultado: 7/7 checks passed
+```
+
+For deeper validation (inference, HMAC, branch naming):
+
+```bash
+./scripts/test-e2e-full.sh
+```
+
+## Repository Structure
 
 ```
 .
-├── AGENTS.md              # Mapa para agentes (divulgación progresiva)
-├── CHECKPOINTS.md         # Criterios de "estado final correcto"
-├── feature_list.json      # Alcance: una feature a la vez
-├── init.sh                # Verificación e inicialización
-├── progress/
-│   ├── current.md         # Sesión activa (estado vivo)
-│   └── history.md         # Bitácora append-only
-├── docs/
-│   ├── architecture.md    # Qué significa "buen trabajo"
-│   ├── conventions.md     # Estilo, nombres, errores
-│   └── verification.md    # Cómo demostrar que funciona
-├── .claude/
-│   ├── agents/            # Definiciones de líder, implementador, revisor
-│   └── settings.json      # Hooks que automatizan la verificación
-├── src/
-│   ├── storage.py         # Persistencia atómica (JSON)
-│   ├── notes.py           # Modelo de dominio
-│   └── cli.py             # Interfaz argparse
-└── tests/
-    ├── test_storage.py
-    ├── test_notes.py
-    └── test_cli.py
+├── terraform/             # IaC — VM, SA, firewall, Secret Manager
+├── scripts/               # startup.sh, provision.sh, test-e2e.sh
+├── config/
+│   ├── hermes/            # config.yaml, SOUL.md (agent identity)
+│   ├── litellm/           # LiteLLM proxy config (Vertex AI routing)
+│   └── systemd/           # litellm.service, hermes-gateway.service
+├── skills/
+│   └── git-workflow/      # Custom skill: clone → branch → PR → comment
+├── specs/                 # Feature specs (requirements, design, tasks)
+├── docs/                  # Architecture, conventions, verification guide
+└── AGENTS.md              # Entry point for AI agents working on this repo
 ```
 
-## Aprendizajes que ilustra este proyecto
+## Connecting with Cursor / VSCode
 
-- **Divulgación progresiva** en `AGENTS.md`: el agente no recibe todas las
-  reglas de golpe, recibe un mapa para buscarlas bajo demanda.
-- **Una feature a la vez** validado por `init.sh` (rechaza más de un
-  `in_progress` en `feature_list.json`).
-- **Estado en disco**, no en chat: `progress/current.md` y `history.md`
-  sobreviven a reinicios y context windows reventadas.
-- **Verificación ejecutable**: `init.sh` corre los tests reales, no se fía
-  de lo que diga el agente.
-- **Patrón Líder-Trabajador-Revisor**: el líder no implementa, el
-  implementador no se autoaprueba, el revisor no edita código.
-- **Anti teléfono-descompuesto**: los subagentes escriben sus resultados
-  en archivos y solo devuelven una referencia ligera.
+See [docs/cursor-ssh-guide.md](docs/cursor-ssh-guide.md) for step-by-step instructions to connect via Remote SSH and manage skills, config, and workspaces live.
+
+## Customization
+
+| What | Where |
+|---|---|
+| Agent name and personality | `config/hermes/SOUL.md` |
+| Model routing (Pro/Flash) | `config/litellm/config.yaml` |
+| Git workflow (branch naming, PR template) | `skills/git-workflow/SKILL.md` |
+| VM size, region, disk | `terraform/terraform.tfvars` |
+| SSH access CIDR | `terraform/terraform.tfvars` → `ssh_allowed_cidr` |
+
+## Adding Skills and MCPs
+
+```bash
+# From Cursor connected via SSH, or directly on the VM:
+hermes skills install <skill-id>          # from official registry
+hermes skills install ./skills/my-skill   # from local path
+hermes mcp install <mcp-name>             # MCP server
+```
+
+Custom skills go in `skills/` — they're installed automatically by `provision.sh`.
+
+## How it works (for AI agents)
+
+See `AGENTS.md` for the agent orchestration model used to build and maintain this repo.

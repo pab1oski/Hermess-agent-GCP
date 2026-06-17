@@ -1,7 +1,32 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform.lock.hcl
+terraform.tfvars
+override.tf
+override.tf.json
+
+# Secrets
+.env
+*.env
+*.pem
+*.key
+gh_token.txt
+
+# Python
 __pycache__/
-*.py[cod]
-.notes.json
-.notes_*.json
-*.tmp
-.DS_Store
+*.pyc
+*.pyo
 .venv/
+*.egg-info/
+
+# OS
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/

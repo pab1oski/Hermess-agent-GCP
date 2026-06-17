@@ -1,6 +1,6 @@
 {
-  "project": "{{project-name}}",
-  "description": "{{One-line description of the project.}}",
+  "project": "hermes-agent-gcp",
+  "description": "Infraestructura deployable en GCP para un AI Software Engineer autónomo con Hermes Agent.",
   "rules": {
     "one_feature_at_a_time": true,
     "require_tests_to_close": true,
@@ -9,13 +9,138 @@
   "features": [
     {
       "id": 1,
-      "name": "example_feature",
-      "title": "Example feature — replace with your first real task",
-      "description": "Describe what needs to be built and why.",
+      "name": "scaffold_cleanup",
+      "title": "Limpieza del scaffold y setup de estructura del proyecto",
+      "description": "Eliminar el código placeholder de la notes app y crear la estructura de carpetas del proyecto real (terraform/, scripts/, config/, skills/).",
       "acceptance": [
-        "Describe the observable output or behavior that proves this is done.",
-        "Add one criterion per bullet. Be specific and executable.",
-        "Tests cover the happy path and at least one error case."
+        "No existen carpetas src/, tests/ ni specs/example_feature/.",
+        "Existen las carpetas terraform/, scripts/, config/hermes/, config/litellm/, config/systemd/, skills/git-workflow/.",
+        "feature_list.json contiene las 10 features reales del proyecto.",
+        "Cada feature tiene su carpeta en specs/ con requirements.md, design.md y tasks.md."
+      ],
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 2,
+      "name": "terraform_infra",
+      "title": "Terraform — Infraestructura GCP base",
+      "description": "IaC para desplegar la VM e2-standard-2, Service Account, IP estática, firewall (SSH + webhook) y secretos en Secret Manager.",
+      "acceptance": [
+        "terraform validate pasa sin errores.",
+        "terraform plan muestra: VM, SA, IP estática, 2 reglas de firewall, 2 secretos en Secret Manager.",
+        "La SA tiene roles aiplatform.user y secretmanager.secretAccessor.",
+        "Todas las variables configurables están en variables.tf con defaults documentados.",
+        "Existe terraform.tfvars.example con valores de ejemplo comentados."
+      ],
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 3,
+      "name": "startup_script",
+      "title": "Startup script — Provisión automática de la VM",
+      "description": "Script de cloud-init que instala Docker, Git, Python 3.11, GitHub CLI, Hermes Agent y LiteLLM como systemd service al primer boot.",
+      "acceptance": [
+        "shellcheck scripts/startup.sh no reporta errores.",
+        "El script es idempotente (puede correr múltiples veces sin romper nada).",
+        "Extrae secretos de GCP Secret Manager y los escribe en ~/.hermes/.env con chmod 600.",
+        "provision.sh copia config de Hermes e instala skills locales."
+      ],
+      "sdd": true,
+      "status": "done"
+    },
+    {
+      "id": 4,
+      "name": "litellm_config",
+      "title": "Configuración de LiteLLM — Proxy Vertex AI",
+      "description": "Proxy local OpenAI-compatible que rutea llamadas de Hermes a Vertex AI usando gemini-2.5-pro y gemini-2.5-flash.",
+      "acceptance": [
+        "curl http://localhost:4000/v1/models lista gemini-2.5-pro y gemini-2.5-flash.",
+        "Se autentica con Vertex AI via Application Default Credentials (sin API key en texto).",
+        "Existe config/litellm/config.yaml con los dos modelos configurados para europe-west1."
+      ],
+      "sdd": true,
+      "status": "in_progress"
+    },
+    {
+      "id": 5,
+      "name": "hermes_config",
+      "title": "Configuración de Hermes Agent",
+      "description": "config.yaml apuntando a LiteLLM, SOUL.md con identidad y flujo de trabajo del agente, env.example como template.",
+      "acceptance": [
+        "hermes config check no reporta errores.",
+        "hermes chat -q 'What is your name?' responde con el nombre configurado en AGENT_NAME.",
+        "SOUL.md define el flujo clone→branch→implement→test→PR→comment.",
+        "El nombre del agente es configurable via variable AGENT_NAME."
+      ],
+      "sdd": true,
+      "status": "in_progress"
+    },
+    {
+      "id": 6,
+      "name": "git_workflow_skill",
+      "title": "Skill de Git Workflow para PRs",
+      "description": "Skill custom que codifica el flujo de trabajo del agente: clone, branch con naming <agent_name>/issue-<n>/<slug>, tests, PR y comment en issue.",
+      "acceptance": [
+        "hermes skills list muestra git-workflow instalado.",
+        "El skill define el naming de ramas: <agent_name>/issue-<number>/<slug>.",
+        "Incluye templates de PR body y comment en issue.",
+        "Se instala automáticamente desde provision.sh."
+      ],
+      "sdd": true,
+      "status": "in_progress"
+    },
+    {
+      "id": 7,
+      "name": "github_webhook",
+      "title": "Webhook de GitHub — Trigger del agente",
+      "description": "Configurar el gateway de Hermes para escuchar issues.opened de GitHub, verificar firma HMAC y disparar el agente con el skill git-workflow.",
+      "acceptance": [
+        "hermes gateway status reporta activo.",
+        "hermes webhook list muestra suscripción a issues.opened.",
+        "El gateway corre como systemd service persistente.",
+        "El script setup-webhook.sh automatiza la configuración del webhook en Hermes."
+      ],
+      "sdd": true,
+      "status": "in_progress"
+    },
+    {
+      "id": 8,
+      "name": "e2e_tests",
+      "title": "Tests E2E — Smoke tests de la VM desplegada",
+      "description": "Script ejecutable desde la máquina local que verifica via SSH que todos los componentes de la VM funcionan correctamente.",
+      "acceptance": [
+        "scripts/test-e2e.sh ejecuta y reporta PASS/FAIL para: SSH, hermes --version, litellm activo, modelos disponibles, skills instalados, gateway activo, gh autenticado.",
+        "Todos los checks pasan en una VM correctamente desplegada.",
+        "El script usa la IP de terraform output automáticamente."
+      ],
+      "sdd": true,
+      "status": "pending"
+    },
+    {
+      "id": 9,
+      "name": "cursor_ssh_connection",
+      "title": "Conexión SSH con Cursor/VSCode",
+      "description": "Script que genera el bloque ~/.ssh/config y guía paso a paso para conectar Cursor o VSCode a la VM via Remote SSH.",
+      "acceptance": [
+        "scripts/generate-ssh-config.sh genera un bloque SSH config válido con la IP de terraform output.",
+        "docs/cursor-ssh-guide.md cubre: instalación de extensión, configuración SSH, conexión, gestión de skills y MCPs desde Cursor.",
+        "Siguiendo la guía se puede conectar a la VM y editar ~/.hermes/ desde Cursor."
+      ],
+      "sdd": true,
+      "status": "pending"
+    },
+    {
+      "id": 10,
+      "name": "documentation",
+      "title": "Documentación completa de despliegue",
+      "description": "README con quick start, docs de arquitectura, convenciones Terraform y guía de verificación.",
+      "acceptance": [
+        "README.md tiene quick start completo: bootstrap bucket → terraform apply → SSH → provision → test webhook.",
+        "docs/architecture.md describe las capas: GCP → VM → LiteLLM → Hermes → GitHub.",
+        "docs/conventions.md define convenciones HCL/Terraform del proyecto.",
+        "docs/verification.md lista los comandos de verificación end-to-end."
       ],
       "sdd": true,
       "status": "pending"

@@ -1,22 +1,17 @@
 # Sesión actual
 
-> Este archivo se vacía al cerrar cada sesión y se mueve a `history.md`.
-> Mientras trabajas, **mantenlo actualizado en tiempo real**, no al final.
+Feature en curso: 8 — e2e_tests
 
-- **Feature en curso:** _ninguna_
-- **Inicio:** _—_
-- **Agente:** _—_
+## Estado
 
-## Plan
+T1-T5 completadas:
+- `scripts/test-e2e.sh` implementado (7 checks vía gcloud compute ssh)
+- `scripts/test-e2e-full.sh` implementado (inference, HMAC, branch naming)
+- `terraform/outputs.tf` ampliado con vm_name y vm_zone
+- `README.md` reescrito con quick-start completo y correcto
 
-_Describe en 3-5 bullets qué vas a hacer antes de tocar código._
-
-## Bitácora
-
-_Anota aquí cada paso significativo: archivos creados, decisiones, bloqueos._
-
-- ...
+T6 pendiente: verificación en VM desplegada.
 
 ## Próximo paso
 
-_Si la sesión se interrumpe, lo primero que debe hacer la siguiente sesión._
+Seguir la guía del README para desplegar la infra y correr `./scripts/test-e2e.sh` contra la VM real.

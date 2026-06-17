@@ -1,0 +1,15 @@
+[Unit]
+Description=Hermes Agent Gateway
+After=network.target litellm.service
+
+[Service]
+User=hermess
+EnvironmentFile=/home/hermess/.hermes/.env
+ExecStart=hermes gateway start --port 8644
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
