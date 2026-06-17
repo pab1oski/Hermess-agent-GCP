@@ -1,0 +1,27 @@
+# Copy this file to terraform.tfvars and fill in your values.
+# terraform.tfvars is git-ignored; never commit it with real values.
+
+# GCP project where all resources will be created (required).
+project_id = "my-gcp-project-id"
+
+# Region for the VM and static IP reservation.
+region = "us-central1"
+
+# Zone for the VM instance.
+zone = "us-central1-a"
+
+# Name prefix used for all resources (VM, Service Account, secrets).
+agent_name = "hermess-agent"
+
+# Compute Engine machine type.
+machine_type = "e2-standard-2"
+
+# Boot disk size in GB (SSD).
+disk_size_gb = 50
+
+# CIDR range allowed for SSH (port 22). Restrict to your IP for security.
+# Example: "203.0.113.10/32" for a single workstation IP.
+ssh_allowed_cidr = "0.0.0.0/0"
+
+# URL of the GitHub repo to clone on the VM.
+# repo_url = "https://github.com/your-org/hermess-agent-gcp"
