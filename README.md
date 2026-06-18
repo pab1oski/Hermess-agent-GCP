@@ -24,6 +24,8 @@ GitHub Issue
 
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed and authenticated (`gcloud auth login`)
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
+- [gh CLI](https://cli.github.com) installed and authenticated (`gh auth login`)
+- [shellcheck](https://www.shellcheck.net) installed (`apt install shellcheck` / `brew install shellcheck`)
 - A GCP project with billing enabled
 - A GitHub Fine-Grained PAT with `contents:write` and `pull-requests:write` scopes
 - A webhook secret — any random string, e.g. `openssl rand -hex 32`
@@ -150,6 +152,22 @@ For deeper validation (inference, HMAC, branch naming):
 
 ```bash
 ./scripts/test-e2e-full.sh
+```
+
+### 8. Test the end-to-end flow
+
+Create a test issue on any repository the agent has access to. Within ~30 seconds:
+
+1. The gateway receives the webhook and triggers the agent.
+2. The agent clones the repo and creates branch `{agent_name}/issue-{number}/{slug}`.
+3. The agent implements the requested changes and opens a Pull Request.
+4. A comment with the PR link appears on the original issue.
+
+You can monitor the agent in real time:
+
+```bash
+gcloud compute ssh hermess-agent-vm --zone=us-central1-a -- \
+  "sudo -u hermess journalctl -u hermes -f"
 ```
 
 ## Repository Structure
