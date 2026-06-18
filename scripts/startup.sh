@@ -53,7 +53,7 @@ fi
 # --- Python packages ---
 
 echo "[startup] Installing pip packages"
-pip3 install --upgrade --break-system-packages hermes-agent "litellm[proxy]"
+pip3 install --upgrade --break-system-packages hermes-agent "litellm[proxy]" "google-cloud-aiplatform"
 
 # --- Secrets ---
 
