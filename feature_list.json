@@ -61,7 +61,7 @@
         "Existe config/litellm/config.yaml con los dos modelos configurados para europe-west1."
       ],
       "sdd": true,
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 5,
@@ -75,7 +75,7 @@
         "El nombre del agente es configurable via variable AGENT_NAME."
       ],
       "sdd": true,
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 6,
@@ -89,7 +89,7 @@
         "Se instala automáticamente desde provision.sh."
       ],
       "sdd": true,
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 7,
@@ -103,7 +103,7 @@
         "El script setup-webhook.sh automatiza la configuración del webhook en Hermes."
       ],
       "sdd": true,
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 8,
@@ -116,7 +116,7 @@
         "El script usa la IP de terraform output automáticamente."
       ],
       "sdd": true,
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 9,

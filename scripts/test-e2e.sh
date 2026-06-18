@@ -2,13 +2,13 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# E2E smoke tests — runs 7 checks against the live Hermes agent VM.
+# E2E smoke tests — runs 8 checks against the live Hermes agent VM.
 # Usage: ./scripts/test-e2e.sh
 # ---------------------------------------------------------------------------
 
 PASS=0
 FAIL=0
-TOTAL=7
+TOTAL=8
 
 # Resolve VM coordinates from Terraform state
 VM_NAME=$(cd terraform && terraform output -raw vm_name 2>/dev/null) || {
@@ -51,6 +51,7 @@ check "SSH conecta"           "true"
 check "hermes instalado"      "hermes --version"
 check "LiteLLM activo"        "curl -sf http://localhost:4000/health/liveliness"
 check "modelo gemini-2.5-pro" "grep -q 'gemini-2.5-pro' /etc/litellm/config.yaml"
+check "inferencia Vertex AI"  "curl -sf -X POST http://localhost:4000/v1/chat/completions -H 'Content-Type: application/json' -d '{\"model\":\"gemini-2.5-flash\",\"messages\":[{\"role\":\"user\",\"content\":\"say: ok\"}],\"max_tokens\":5}' | grep -q 'choices'"
 check "skill git-workflow"    "ls /home/hermess/.hermes/skills/ | grep -q git-workflow"
 check "gateway activo"        "sudo -u hermess hermes gateway status | grep -q active"
 check "gh autenticado"        "sudo -u hermess bash -c 'source /home/hermess/.hermes/.env && GH_TOKEN=\$GITHUB_TOKEN gh auth status'"
