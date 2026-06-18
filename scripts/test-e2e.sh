@@ -22,6 +22,11 @@ VM_ZONE=$(cd terraform && terraform output -raw vm_zone 2>/dev/null) || {
   exit 1
 }
 
+PROJECT=$(cd terraform && terraform output -raw project_id 2>/dev/null) || {
+  echo "ERROR: could not read project_id from terraform output." >&2
+  exit 1
+}
+
 # check LABEL COMMAND
 # Runs COMMAND via SSH on the VM and records pass/fail.
 check() {
@@ -29,7 +34,8 @@ check() {
   local cmd="${2}"
   if gcloud compute ssh "${VM_NAME}" \
         --zone="${VM_ZONE}" \
-        --tunnel-through-iap=false \
+        --project="${PROJECT}" \
+        --no-tunnel-through-iap \
         --command="${cmd}" \
         -- -q 2>/dev/null; then
     echo "[PASS] ${label}"
@@ -41,13 +47,13 @@ check() {
 }
 
 # --- checks ---
-check "SSH conecta"          "true"
-check "hermes instalado"     "hermes --version"
-check "LiteLLM activo"       "curl -sf http://localhost:4000/health"
-check "modelo gemini-2.5-pro" "curl -sf http://localhost:4000/v1/models | grep -q gemini-2.5-pro"
-check "skill git-workflow"   "hermes skills list | grep -q git-workflow"
-check "gateway activo"       "hermes gateway status | grep -q active"
-check "gh autenticado"       "gh auth status"
+check "SSH conecta"           "true"
+check "hermes instalado"      "hermes --version"
+check "LiteLLM activo"        "curl -sf http://localhost:4000/health/liveliness"
+check "modelo gemini-2.5-pro" "grep -q 'gemini-2.5-pro' /etc/litellm/config.yaml"
+check "skill git-workflow"    "ls /home/hermess/.hermes/skills/ | grep -q git-workflow"
+check "gateway activo"        "sudo -u hermess hermes gateway status | grep -q active"
+check "gh autenticado"        "sudo -u hermess bash -c 'source /home/hermess/.hermes/.env && GH_TOKEN=\$GITHUB_TOKEN gh auth status'"
 
 # --- summary ---
 echo ""
