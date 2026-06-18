@@ -6,7 +6,7 @@ METADATA_HEADER="Metadata-Flavor: Google"
 
 AGENT_NAME="$(curl -sf -H "${METADATA_HEADER}" "${METADATA_BASE}/agent-name")"
 REPO_URL="$(curl -sf -H "${METADATA_HEADER}" "${METADATA_BASE}/repo-url")"
-DEPLOY_USER="${SUDO_USER:-hermess}"
+DEPLOY_USER="hermess"
 HERMES_HOME="/home/${DEPLOY_USER}/.hermes"
 
 echo "[startup] agent=${AGENT_NAME} repo=${REPO_URL} user=${DEPLOY_USER}"
@@ -41,6 +41,13 @@ if ! command -v gh &>/dev/null; then
   apt-get install -y gh
 else
   echo "[startup] GitHub CLI already installed"
+fi
+
+# --- Deploy user ---
+
+if ! id "${DEPLOY_USER}" &>/dev/null; then
+  echo "[startup] Creating user ${DEPLOY_USER}"
+  useradd -m -s /bin/bash "${DEPLOY_USER}"
 fi
 
 # --- Python packages ---
@@ -81,8 +88,8 @@ fi
 echo "[startup] Installing litellm.service"
 cp /opt/hermes-deploy/config/systemd/litellm.service /etc/systemd/system/litellm.service
 systemctl daemon-reload
-systemctl enable --now litellm
-echo "[startup] LiteLLM service enabled"
+systemctl enable litellm
+echo "[startup] LiteLLM service installed (will start after provision)"
 
 # --- Hermes Gateway systemd service ---
 
@@ -95,5 +102,11 @@ echo "[startup] Hermes Gateway service installed (will be enabled by setup-webho
 
 echo "[startup] Running provision.sh"
 bash /opt/hermes-deploy/scripts/provision.sh
+
+# --- Start LiteLLM (config now in place) ---
+
+echo "[startup] Starting LiteLLM"
+systemctl start litellm
+echo "[startup] LiteLLM started"
 
 echo "[startup] Done"
