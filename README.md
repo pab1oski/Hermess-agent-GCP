@@ -90,7 +90,7 @@ echo -n "your-github-pat" | \
 echo -n "your-webhook-secret" | \
   gcloud secrets versions add hermess-agent-github-webhook-secret --data-file=- --project=<project-id>
 
-echo -n "your-litellm-master-key" | \
+echo -n "sk-$(openssl rand -hex 32)" | \
   gcloud secrets versions add hermess-agent-litellm-master-key --data-file=- --project=<project-id>
 ```
 
