@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEPLOY_USER="${SUDO_USER:-$USER}"
+DEPLOY_USER="hermess"
 HERMES_HOME="/home/${DEPLOY_USER}/.hermes"
 
 echo "[provision] repo=${REPO_DIR} user=${DEPLOY_USER} home=${HERMES_HOME}"
