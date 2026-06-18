@@ -11,9 +11,6 @@ model_list:
       vertex_project: "${GOOGLE_CLOUD_PROJECT}"
       vertex_location: europe-west1
 
-general_settings:
-  master_key: "${LITELLM_MASTER_KEY}"
-
 server:
   port: 4000
   host: 127.0.0.1
