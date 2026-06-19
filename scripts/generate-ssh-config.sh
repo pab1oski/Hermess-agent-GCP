@@ -8,8 +8,8 @@ VM_IP=$(cd "${REPO_ROOT}/terraform" && terraform output -raw vm_ip)
 
 SSH_BLOCK="Host hermes-agent
     HostName ${VM_IP}
-    User ubuntu
-    IdentityFile ~/.ssh/id_rsa
+    User $(whoami)
+    IdentityFile ~/.ssh/google_compute_engine
     StrictHostKeyChecking no"
 
 SSH_DIR="${HOME}/.ssh"

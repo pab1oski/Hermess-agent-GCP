@@ -13,12 +13,12 @@ Before you start, make sure you have:
 - The **Remote - SSH** extension installed in your editor.
   - Cursor: open the Extensions panel (`Ctrl+Shift+X` / `Cmd+Shift+X`), search for `Remote - SSH`, and install the extension published by Microsoft.
   - VSCode: same steps.
-- An **SSH key pair** already created on your local machine. Run `ls ~/.ssh/id_rsa` to check. If the file is missing, create one:
-  ```bash
-  ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
-  ```
-- The **public key** (`~/.ssh/id_rsa.pub`) added to the VM. This is handled automatically by Terraform via the startup script — no manual step needed if you deployed with this repo.
 - **Terraform** CLI installed and the infrastructure already deployed (`terraform apply` completed successfully inside the `terraform/` directory).
+- Your **SSH key registered on the VM**. GCP manages SSH keys automatically via `gcloud` — run this once after `terraform apply`:
+  ```bash
+  gcloud compute ssh hermess-agent-vm --zone=us-central1-a --project=<your-project-id>
+  ```
+  This creates `~/.ssh/google_compute_engine` (if missing) and pushes your public key to the VM. You can exit immediately after connecting — you only need to do this once.
 
 ---
 

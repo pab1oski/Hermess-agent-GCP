@@ -102,7 +102,7 @@ echo -n "sk-$(openssl rand -hex 32)" | \
 
 The VM automatically runs `scripts/startup.sh` → `scripts/provision.sh` on first boot. This installs Docker, GitHub CLI, Hermes Agent, LiteLLM, and copies all config and skills.
 
-To check provisioning status:
+To check provisioning status (this also registers your SSH key on the VM — required for `ssh hermes-agent` to work later):
 
 ```bash
 gcloud compute ssh hermess-agent-vm --zone=us-central1-a -- \
