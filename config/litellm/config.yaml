@@ -4,12 +4,21 @@ model_list:
       model: vertex_ai/gemini-2.5-pro
       vertex_project: os.environ/GOOGLE_CLOUD_PROJECT
       vertex_location: europe-west1
+      thinking:
+        type: enabled
+        budget_tokens: 8000
 
   - model_name: gemini-2.5-flash
     litellm_params:
       model: vertex_ai/gemini-2.5-flash
       vertex_project: os.environ/GOOGLE_CLOUD_PROJECT
       vertex_location: europe-west1
+      thinking:
+        type: enabled
+        budget_tokens: 4096
+
+litellm_settings:
+  drop_params: true
 
 server:
   port: 4000
