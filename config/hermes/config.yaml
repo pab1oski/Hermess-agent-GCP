@@ -21,7 +21,7 @@ platforms:
       port: 8644
       secret: "${WEBHOOK_SECRET}"
 
-tools:
+toolsets:
   - terminal
   - file
   - code_execution
