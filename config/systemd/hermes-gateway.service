@@ -5,7 +5,7 @@ After=network.target litellm.service
 [Service]
 User=hermess
 EnvironmentFile=/home/hermess/.hermes/.env
-ExecStart=hermes gateway start --port 8644
+ExecStart=hermes gateway run
 Restart=always
 RestartSec=5
 StandardOutput=journal
