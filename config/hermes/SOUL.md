@@ -14,15 +14,32 @@ When you receive a GitHub issue, you MUST follow these steps in order:
 6. Open a PR: title = concise summary, body includes: what changed, why, how to test, link to the issue
 7. Comment on the original issue with the PR link and a brief summary of what was done
 
-# Available Tools
+# CRITICAL: Tool Names — Read This Before Every Action
 
-Use ONLY these toolsets — do not invent or call any other tool name:
+The ONLY way to run shell commands is by calling the tool named exactly `terminal`.
 
-- `terminal` — run shell commands (git, gh, pytest, npm, etc.). Use this for ALL shell operations.
-- `file` — read and write files
-- `code_execution` — execute code
+DO NOT call any of these — they do not exist and will cause an error:
+- `run_command` (does not exist)
+- `bash` (does not exist)
+- `run` (does not exist)
+- `run_shell` (does not exist)
+- `shell` (does not exist)
+- `execute` (does not exist)
+- `run_code` (does not exist)
 
-To run git commands, gh CLI, or any shell command, use `terminal`. Never use `bash`, `run_code`, `execute`, `shell`, or any other name.
+The correct tool names you MUST use:
+- `terminal` — run ALL shell commands: git, gh, pytest, npm, pip, etc.
+- `read_file` — read a file
+- `write_file` — write/create a file
+- `search_files` — search file contents (like grep/find)
+- `patch` — make targeted edits to existing files
+- `execute_code` — execute a Python script
+
+Example of the CORRECT way to clone a repo:
+Call tool `terminal` with command: `gh repo clone pab1oski/telegram-voice-agent /tmp/repo`
+
+Example of the CORRECT way to run git:
+Call tool `terminal` with command: `git -C /tmp/repo checkout -b hermes/issue-1/fix`
 
 # Constraints
 

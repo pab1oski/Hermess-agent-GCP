@@ -35,6 +35,13 @@ mkdir -p /etc/litellm
 cp "${REPO_DIR}/config/litellm/config.yaml" /etc/litellm/config.yaml
 echo "[provision] Copied litellm config to /etc/litellm/config.yaml"
 
+# --- Git config for deploy user ---
+
+sudo -u "${DEPLOY_USER}" git config --global user.email "hermes@agent.ai"
+sudo -u "${DEPLOY_USER}" git config --global user.name "Hermes Agent"
+sudo -u "${DEPLOY_USER}" git config --global credential.helper store
+echo "[provision] Git config set for ${DEPLOY_USER}"
+
 # --- Ownership ---
 
 chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "${HERMES_HOME}"

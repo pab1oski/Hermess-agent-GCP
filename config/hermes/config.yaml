@@ -25,3 +25,9 @@ toolsets:
   - terminal
   - file
   - code_execution
+
+platform_toolsets:
+  webhook:
+    - terminal
+    - file
+    - code_execution

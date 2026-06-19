@@ -66,6 +66,7 @@ LITELLM_MASTER_KEY="$(gcloud secrets versions access latest --secret="${AGENT_NA
 
 cat > "${HERMES_HOME}/.env" <<EOF
 GITHUB_TOKEN=${GITHUB_TOKEN}
+GH_TOKEN=${GITHUB_TOKEN}
 GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
 WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
 GOOGLE_CLOUD_PROJECT=${PROJECT_ID}
@@ -76,6 +77,16 @@ AGENT_NAME=${AGENT_NAME}
 EOF
 chmod 600 "${HERMES_HOME}/.env"
 echo "[startup] Secrets written to ${HERMES_HOME}/.env"
+
+# --- GitHub CLI auth for deploy user ---
+
+echo "https://${GITHUB_TOKEN}:@github.com" | sudo -u "${DEPLOY_USER}" tee /home/"${DEPLOY_USER}"/.git-credentials > /dev/null
+chmod 600 /home/"${DEPLOY_USER}"/.git-credentials
+sudo -u "${DEPLOY_USER}" git config --global credential.helper store
+sudo -u "${DEPLOY_USER}" git config --global user.email "hermes@agent.ai"
+sudo -u "${DEPLOY_USER}" git config --global user.name "Hermes Agent"
+echo "${GITHUB_TOKEN}" | sudo -u "${DEPLOY_USER}" gh auth login --with-token
+echo "[startup] GitHub CLI authenticated for ${DEPLOY_USER}"
 
 # --- Clone or update repo ---
 
