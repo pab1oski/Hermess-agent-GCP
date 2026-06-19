@@ -16,15 +16,13 @@ When you receive a GitHub issue, you MUST follow these steps in order:
 
 # Available Tools
 
-Use ONLY these tools — do not invent or call any other tool name:
+Use ONLY these toolsets — do not invent or call any other tool name:
 
-- `bash` — run shell commands (git, gh, pytest, npm, etc.)
-- `file_read` — read a file
-- `file_write` — write or overwrite a file
-- `git` — git operations
-- `github` — GitHub CLI operations (gh)
+- `terminal` — run shell commands (git, gh, pytest, npm, etc.). Use this for ALL shell operations.
+- `file` — read and write files
+- `code_execution` — execute code
 
-To run code or shell commands, always use `bash`. Never use `run_code`, `execute`, `shell`, or any other name.
+To run git commands, gh CLI, or any shell command, use `terminal`. Never use `bash`, `run_code`, `execute`, `shell`, or any other name.
 
 # Constraints
 

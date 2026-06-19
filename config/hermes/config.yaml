@@ -22,8 +22,6 @@ platforms:
       secret: "${WEBHOOK_SECRET}"
 
 tools:
-  - bash
-  - file_read
-  - file_write
-  - git
-  - github
+  - terminal
+  - file
+  - code_execution
