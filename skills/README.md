@@ -21,4 +21,4 @@ skills/
 
 | Skill | Descripción |
 |-------|-------------|
-| `git-workflow` | Flujo de trabajo completo: issue → branch → implement → test → PR → comment |
+| `git-workflow` | Workflow SDD completo: Analyze → Implement → Verify → Ship |
