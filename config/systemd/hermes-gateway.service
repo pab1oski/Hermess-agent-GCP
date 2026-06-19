@@ -5,7 +5,7 @@ After=network.target litellm.service
 [Service]
 User=hermess
 EnvironmentFile=/home/hermess/.hermes/.env
-ExecStart=hermes gateway run --accept-hooks --replace
+ExecStart=hermes gateway run --accept-hooks --replace -v
 Restart=always
 RestartSec=5
 StandardOutput=journal
