@@ -1,17 +1,15 @@
 # Sesión actual
 
-Feature en curso: 8 — e2e_tests
+Feature en curso: 10 — documentation
+
+## Plan
+
+T1: Reescribir README.md — SKIPPED (already fully implemented per instructions)
+T2: Reescribir docs/architecture.md con capas reales GCP/VM/Vertex AI
+T3: Reescribir docs/conventions.md con convenciones HCL/Terraform reales
+T4: Reescribir docs/verification.md con comandos end-to-end reales
+T5: Revisar que comandos en verification.md coinciden con scripts implementados
 
 ## Estado
 
-T1-T5 completadas:
-- `scripts/test-e2e.sh` implementado (7 checks vía gcloud compute ssh)
-- `scripts/test-e2e-full.sh` implementado (inference, HMAC, branch naming)
-- `terraform/outputs.tf` ampliado con vm_name y vm_zone
-- `README.md` reescrito con quick-start completo y correcto
-
-T6 pendiente: verificación en VM desplegada.
-
-## Próximo paso
-
-Seguir la guía del README para desplegar la infra y correr `./scripts/test-e2e.sh` contra la VM real.
+En progreso.
